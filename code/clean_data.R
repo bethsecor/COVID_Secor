@@ -55,21 +55,27 @@ write.csv(COVID_cases_7_pop_state, file = paste(path,"/data/COVID_7days_byState.
 COVID_tracking_all <- read.csv(paste(path,"/data/raw/COVID_tracking/all-states-history.csv", sep=""), header=T)
 head(COVID_tracking_all)
 summary(COVID_tracking_all)
-last_day <- 20200831
-COVID_tracking_7days_COregion <- COVID_tracking_all %>% filter((date <= last_day & date >= (last_day - 7)) & state %in% c("CO","WY","NE","KS","OK","TX","NM", "AZ", "UT")) %>% select(state, date, positiveIncrease, positiveCasesViral, negative, negativeTestsViral, positiveTestsViral, totalTestsPeopleViral, totalTestsViral, totalTestEncountersViral) %>% group_by(date, state)
+
+COVID_tracking_7days_COregion <- COVID_tracking_all %>% filter(state %in% c("CO","WY","NE","KS","OK","TX","NM", "AZ", "UT")) %>% select(state, date, positiveIncrease, positiveCasesViral, negative, negativeTestsViral, positiveTestsViral, totalTestsPeopleViral, totalTestsViral, totalTestEncountersViral) %>% group_by(date, state)
 
 table(COVID_tracking_7days_COregion$date, COVID_tracking_7days_COregion$state)
 COVID_tracking_7days_COregion[COVID_tracking_7days_COregion$state == "CO",]
 COVID_tracking_7days_COregion[COVID_tracking_7days_COregion$state == "KS",]
-# note: KS does not report the column positiveCasesViral. Since they do not report antibody tests, assume that positiveIncrease is the number of new cases and new positive PCR tests.
+# note: KS does not report the column positiveCasesViral. Since they do not report antibody tests, assume that positiveIncrease is the number of new cases and new positive PCR tests? Look into further!
+
 
 COVID_tracking_7days_COregion_cnts <- COVID_tracking_7days_COregion %>%
 	group_by(state) %>%
 	arrange(date) %>%
-	mutate(positivePCRincrease = ifelse(state == "KS", positiveIncrease, positiveCasesViral - lag(positiveCasesViral, default = first(positiveCasesViral))), negativePCRincrease = negative - lag(negative, default = first(negative)), pct_positive = ifelse(negativePCRincrease != 0, positivePCRincrease / (positivePCRincrease + negativePCRincrease) * 100, NA)) %>%
-	select(state, date, positiveIncrease, positiveCasesViral, positivePCRincrease, negative, negativePCRincrease, pct_positive) %>%
-	filter(date > (last_day - 7))
+	mutate(
+	positivePCRincrease = ifelse(is.na(positiveCasesViral) & !is.na(positiveIncrease), positiveIncrease, positiveCasesViral - lag(positiveCasesViral, default = 0)), 
+	negativePCRincrease = negative - lag(negative, default = 0), pct_positive = ifelse(negativePCRincrease != 0, 
+	positivePCRincrease / (positivePCRincrease + negativePCRincrease) * 100, NA)) %>%
+	select(state, date, positiveIncrease, positiveCasesViral, positivePCRincrease, negative, negativePCRincrease, pct_positive)
 	
 COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state == "OK",]
-COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state == "KS",]
 # note: OK did not report an increase in negative PCR tests for 8/30 and 8/31
+summary(COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state == "TX",])
+
+COVID_tracking_7days_COregion_cnts[!is.na(COVID_tracking_7days_COregion_cnts$pct_positive) & COVID_tracking_7days_COregion_cnts$pct_positive >= 50,]
+# note: early days of testing may not result in an accurate percent positivity, since many were unable to get tested and the requirements for testing then were stringent
