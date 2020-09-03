@@ -38,8 +38,8 @@ summary(population_state_2019)
 
 # Merge COVID-19 case counts (last 7 days) with population estimates for 2019 and create incidence per 100,000:
 COVID_cases_7_pop_state <- full_join(COVID_cases_7_CDC_state, population_state_2019, by="state") %>% mutate(incidence_7days = cases.7days / POPESTIMATE2019 * 100000)
-save(COVID_cases_7_pop_state, file = paste(path,"/data/COVID_7days_byState.Rda",sep=""))
-write.csv(COVID_cases_7_pop_state, file = paste(path,"/data/COVID_7days_byState.csv",sep=""))
+#save(COVID_cases_7_pop_state, file = paste(path,"/data/COVID_7days_byState.Rda",sep=""))
+#write.csv(COVID_cases_7_pop_state, file = paste(path,"/data/COVID_7days_byState.csv",sep=""))
 
 ## Read in data from The COVID Tracking Project:
 
@@ -56,26 +56,68 @@ COVID_tracking_all <- read.csv(paste(path,"/data/raw/COVID_tracking/all-states-h
 head(COVID_tracking_all)
 summary(COVID_tracking_all)
 
-COVID_tracking_7days_COregion <- COVID_tracking_all %>% filter(state %in% c("CO","WY","NE","KS","OK","TX","NM", "AZ", "UT")) %>% select(state, date, positiveIncrease, positiveCasesViral, negative, negativeTestsViral, positiveTestsViral, totalTestsPeopleViral, totalTestsViral, totalTestEncountersViral) %>% group_by(date, state)
+# Select only CO and neighboring states, limit data to state, date, new cases, and PCR columns
+COVID_tracking_7days_COregion <- COVID_tracking_all %>% filter(state %in% c("CO","WY","NE","KS","OK","TX","NM", "AZ", "UT")) %>% select(state, date, positive, positiveIncrease, positiveCasesViral, negative, negativeTestsViral, positiveTestsViral, totalTestsPeopleViral, totalTestsViral, totalTestEncountersViral) %>% group_by(date, state)
 
 table(COVID_tracking_7days_COregion$date, COVID_tracking_7days_COregion$state)
 COVID_tracking_7days_COregion[COVID_tracking_7days_COregion$state == "CO",]
 COVID_tracking_7days_COregion[COVID_tracking_7days_COregion$state == "KS",]
-# note: KS does not report the column positiveCasesViral. Since they do not report antibody tests, assume that positiveIncrease is the number of new cases and new positive PCR tests? Look into further!
+# note: KS does not report the column positiveCasesViral. Since they do not report antibody tests, assume that positiveIncrease is the number of new cases and new positive PCR tests?
 
-
+# Calculate the daily positive PCR, daily negative PCR tests, daily total PCR tests, daily percent positivity, add full state name
+# If the next day's cumulative count of positive or negative PCR tests is less than that day, set that count to NA? Same question for positive, which then the already calculated positiveIncrease needs to be recalculated? Leaving for now.
 COVID_tracking_7days_COregion_cnts <- COVID_tracking_7days_COregion %>%
 	group_by(state) %>%
 	arrange(date) %>%
 	mutate(
+	#positiveCasesViral = ifelse(lead(positiveCasesViral) < positiveCasesViral, NA, positiveCasesViral),
+	#negative = ifelse(lead(negative) < negative, NA, negative),
 	positivePCRincrease = ifelse(is.na(positiveCasesViral) & !is.na(positiveIncrease), positiveIncrease, positiveCasesViral - lag(positiveCasesViral, default = 0)), 
-	negativePCRincrease = negative - lag(negative, default = 0), pct_positive = ifelse(negativePCRincrease != 0, 
-	positivePCRincrease / (positivePCRincrease + negativePCRincrease) * 100, NA)) %>%
-	select(state, date, positiveIncrease, positiveCasesViral, positivePCRincrease, negative, negativePCRincrease, pct_positive)
+	negativePCRincrease = negative - lag(negative, default = 0), 
+	PCRincrease = positivePCRincrease + negativePCRincrease,
+	pct_positive = positivePCRincrease / PCRincrease * 100) %>%
+	select(state, date, positiveIncrease, positiveCasesViral, positivePCRincrease, negative, negativePCRincrease, PCRincrease, pct_positive) %>%
+	rename(state_abrv = state) %>%
+	mutate(state = state.name[match(state_abrv, state.abb)])
 	
-COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state == "OK",]
+COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "OK",]
 # note: OK did not report an increase in negative PCR tests for 8/30 and 8/31
-summary(COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state == "TX",])
-
+summary(COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "TX",])
 COVID_tracking_7days_COregion_cnts[!is.na(COVID_tracking_7days_COregion_cnts$pct_positive) & COVID_tracking_7days_COregion_cnts$pct_positive >= 50,]
-# note: early days of testing may not result in an accurate percent positivity, since many were unable to get tested and the requirements for testing then were stringent
+# note: early days of testing may not result in an accurate percent positivity, since many were unable to get tested and the requirements for testing then were stringent? Some days with high positivity could be due to low testing counts that day.
+
+# Some days have a negative positiveIncrease (new cases)
+COVID_tracking_7days_COregion_cnts[!is.na(COVID_tracking_7days_COregion_cnts$positiveIncrease) & COVID_tracking_7days_COregion_cnts$positiveIncrease < 0,]
+COVID_tracking_all[COVID_tracking_all$state == "CO" & COVID_tracking_all$date <= 20200514 & COVID_tracking_all$date >= 20200510,]
+
+# Some days have negative values when subracting the lag of positive or negative PCR tests
+COVID_tracking_7days_COregion_cnts[!is.na(COVID_tracking_7days_COregion_cnts$pct_positive) & COVID_tracking_7days_COregion_cnts$pct_positive < 0,]
+COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "CO" & COVID_tracking_7days_COregion_cnts$date <= 20200616 & COVID_tracking_7days_COregion_cnts$date >= 20200612,]
+
+# I'm wondering if these negative daily counts are a result of corrections from the previous days' cumulative counts or just plain errors in the data?
+
+# Define function to calculate 7-day moving average (MA), remove missing data and still calculate a mean. Otherwise, we would have a lot of days with missing MA.
+MA7 <- function(x){
+	moving_avgs = rep(NA, length(x))
+	for (i in 7:length(x)){
+		moving_avgs[i] <- mean(x[(i-6):i], na.rm=T)
+	}
+	return(moving_avgs)
+}
+
+# Merge population estimates for 2019 from Census data, calculate incidence of new cases, daily PCR tests, and a 7-day moving average for new case incidence, daily PCR tests, and percent positivity.
+COVID_tracking_7days_COregion_pop <- inner_join(COVID_tracking_7days_COregion_cnts, population_state_2019, by="state") %>% 
+	mutate(newcase_incidence = positiveIncrease / POPESTIMATE2019 * 100000,
+		   PCR_incidence = PCRincrease / POPESTIMATE2019 * 100000,
+		   newcase_7MA = MA7(newcase_incidence),
+		   PCR_7MA = MA7(PCR_incidence),
+		   positivity_7MA = MA7(pct_positive))
+		   
+summary(COVID_tracking_7days_COregion_pop[COVID_tracking_7days_COregion_pop$state_abrv == "CO",])
+as.data.frame(tail(COVID_tracking_7days_COregion_pop[COVID_tracking_7days_COregion_pop$state_abrv == "CO",]))
+COVID_tracking_all[COVID_tracking_all$state == "CO" & COVID_tracking_all$date == 20200831,]
+
+# Checking the CDPHE's COVID data page, on August 31 they report 327 PCR tests done by CDPHE and 5491 PCR tests done by other labs, so why do I only have 4690 PCR tests for that day? Is their number the actual number of tests vs. number of people tested?
+
+#save(COVID_tracking_7days_COregion_pop, file = paste(path,"/data/COVID_tracking_COregion.Rda",sep=""))
+#write.csv(COVID_tracking_7days_COregion_pop, file = paste(path,"/data/COVID_tracking_COregion.Rda",sep=""))
