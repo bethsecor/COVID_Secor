@@ -18,4 +18,4 @@ The purpose of this project is to use data on COVID-19 cases from a few sources 
 
 **Code Order**
 
-1. First need to run the code to clean the data from the data sources listed above and save as output files to be later used for graphing: **clean_data.R**
+1. First need to run the code to clean the data from the data sources listed above and save as output files to be later used for graphing: **clean_data.R**. The output of this code is four files **COVID_7days_byState** (.csv and .Rda) to be used for mapping and **COVID_tracking_COregion** (.csv and .Rda) to be used for graphing metrics over time.
