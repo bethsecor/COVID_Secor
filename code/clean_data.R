@@ -37,9 +37,9 @@ summary(population_state_2019)
 # note: the population estimates the CDC are using seem to be a bit lower than these estimates for 2019
 
 # Merge COVID-19 case counts (last 7 days) with population estimates for 2019 and create incidence per 100,000:
-COVID_cases_7_pop_state <- full_join(COVID_cases_7_CDC_state, population_state_2019, by="state") %>% mutate(incidence_7days = cases.7days / POPESTIMATE2019 * 100000)
-save(COVID_cases_7_pop_state, file = paste(path,"/data/COVID_7days_byState.Rda",sep=""))
-write.csv(COVID_cases_7_pop_state, file = paste(path,"/data/COVID_7days_byState.csv",sep=""))
+COVID_7days_byState <- full_join(COVID_cases_7_CDC_state, population_state_2019, by="state") %>% mutate(incidence_7days = cases.7days / POPESTIMATE2019 * 100000)
+save(COVID_7days_byState, file = paste(path,"/data/COVID_7days_byState.Rda",sep=""))
+write.csv(COVID_7days_byState, file = paste(path,"/data/COVID_7days_byState.csv",sep=""))
 
 ## Read in data from The COVID Tracking Project:
 
@@ -109,7 +109,7 @@ MA7 <- function(x){
 }
 
 # Merge population estimates for 2019 from Census data, calculate incidence of new cases, daily PCR tests, and a 7-day moving average for new case incidence, daily PCR tests, and percent positivity.
-COVID_tracking_7days_COregion_pop <- inner_join(COVID_tracking_7days_COregion_cnts, population_state_2019, by="state") %>% 
+COVID_tracking_COregion <- inner_join(COVID_tracking_7days_COregion_cnts, population_state_2019, by="state") %>% 
 	mutate(newcase_incidence = positiveIncrease2 / POPESTIMATE2019 * 100000,
 		   PCR_incidence = PCRincrease / POPESTIMATE2019 * 100000,
 		   newcase_7MA = MA7(newcase_incidence),
@@ -117,12 +117,12 @@ COVID_tracking_7days_COregion_pop <- inner_join(COVID_tracking_7days_COregion_cn
 		   positivity_7MA = MA7(pct_positive),
 		   date_fmt = as.Date(as.character(date), "%Y%m%d"))
 		   
-summary(COVID_tracking_7days_COregion_pop)
-summary(COVID_tracking_7days_COregion_pop[COVID_tracking_7days_COregion_pop$state_abrv == "CO",])
-as.data.frame(tail(COVID_tracking_7days_COregion_pop[COVID_tracking_7days_COregion_pop$state_abrv == "CO",]))
+summary(COVID_tracking_COregion)
+summary(COVID_tracking_COregion[COVID_tracking_COregion$state_abrv == "CO",])
+as.data.frame(tail(COVID_tracking_COregion[COVID_tracking_COregion$state_abrv == "CO",]))
 COVID_tracking_all[COVID_tracking_all$state == "CO" & COVID_tracking_all$date == 20200831,]
 
 # Checking the CDPHE's COVID data page, on August 31 they report 327 PCR tests done by CDPHE and 5491 PCR tests done by other labs, so why do I only have 4690 PCR tests for that day? Is their number the actual number of tests vs. number of people tested?
 
-save(COVID_tracking_7days_COregion_pop, file = paste(path,"/data/COVID_tracking_COregion.Rda",sep=""))
-write.csv(COVID_tracking_7days_COregion_pop, file = paste(path,"/data/COVID_tracking_COregion.csv",sep=""))
+save(COVID_tracking_COregion, file = paste(path,"/data/COVID_tracking_COregion.Rda",sep=""))
+write.csv(COVID_tracking_COregion, file = paste(path,"/data/COVID_tracking_COregion.csv",sep=""))
