@@ -2,7 +2,6 @@
 # Author: Beth Secor
 library(tidyverse)
 library(usmap)
-library(gridExtra)
 
 ## Path to git repository:
 path <- "~/Documents/CDPHE/COVID_Secor"
