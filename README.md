@@ -12,7 +12,7 @@ The purpose of this project is to use data on COVID-19 cases from a few sources 
 
 **R Version:** 4.0.3
 
-**Packages:** [tidyverse](https://www.tidyverse.org/), [usmap](https://cran.r-project.org/web/packages/usmap/usmap.pdf)
+**Packages:** [tidyverse](https://www.tidyverse.org/), [usmap](https://cran.r-project.org/web/packages/usmap/usmap.pdf), [viridis](https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html)
 
 **Note:** Code was written using a macOS operating system, backslashes will need to be changed for use on a Windows operating system.
 
