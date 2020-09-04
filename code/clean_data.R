@@ -71,9 +71,9 @@ COVID_tracking_7days_COregion_cnts <- COVID_tracking_7days_COregion %>%
 	group_by(state) %>%
 	arrange(date) %>%
 	mutate(
-	positive = ifelse(!last(positive) & lead(positive) < positive, NA, positive),
-	positiveCasesViral = ifelse(!last(positiveCasesViral) & lead(positiveCasesViral) < positiveCasesViral, NA, positiveCasesViral),
-	negative = ifelse(!last(negative) & lead(negative) < negative, NA, negative),
+	positive = ifelse(lead(positive) & lead(positive) < positive, NA, positive),
+	positiveCasesViral = ifelse(lead(positiveCasesViral) & lead(positiveCasesViral) < positiveCasesViral, NA, positiveCasesViral),
+	negative = ifelse(lead(negative) & lead(negative) < negative, NA, negative),
 	positiveIncrease2 = positive - lag(positive, default = 0), 
 	positivePCRincrease = ifelse(is.na(positiveCasesViral) & !is.na(positiveIncrease2), positiveIncrease, positiveCasesViral - lag(positiveCasesViral, default = 0)), 
 	negativePCRincrease = negative - lag(negative, default = 0), 
@@ -82,7 +82,9 @@ COVID_tracking_7days_COregion_cnts <- COVID_tracking_7days_COregion %>%
 	select(state, date, positive, positiveIncrease, positiveIncrease2, positiveCasesViral, positivePCRincrease, negative, negativePCRincrease, PCRincrease, pct_positive) %>%
 	rename(state_abrv = state) %>%
 	mutate(state = state.name[match(state_abrv, state.abb)])
-	
+
+summary(COVID_tracking_7days_COregion_cnts)
+
 COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "OK",]
 # note: OK did not report an increase in negative PCR tests for 8/30 and 8/31
 summary(COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "TX",])
