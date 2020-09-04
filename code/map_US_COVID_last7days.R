@@ -25,6 +25,8 @@ covid_7inc_map <- plot_usmap(data = inc.tbl, values = "incidence_7days",  color 
     
 ggsave(paste(path, "/graphs/COVID_7days_byState_Map.png", sep=""), covid_7inc_map, width=10, height=8, dpi=600)
 
+
+# I really like this map, especially the color scheme. I originally started out with a simple white to blue color gradient, but found a package called viridis that provides palettes and gradients for colorblind users. Conversion to grayscale also retains the gradient effect. I found this gradient much easier to read than trying to match a shade of a color to the map.
 # Future improvements could be to add a table below with the values, or even better, use something like leaflet to create an interactive map.
 
 
