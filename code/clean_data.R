@@ -38,8 +38,8 @@ summary(population_state_2019)
 
 # Merge COVID-19 case counts (last 7 days) with population estimates for 2019 and create incidence per 100,000:
 COVID_7days_byState <- full_join(COVID_cases_7_CDC_state, population_state_2019, by="state") %>% mutate(incidence_7days = cases.7days / POPESTIMATE2019 * 100000)
-save(COVID_7days_byState, file = paste(path,"/data/COVID_7days_byState.Rda",sep=""))
-write.csv(COVID_7days_byState, file = paste(path,"/data/COVID_7days_byState.csv",sep=""))
+#save(COVID_7days_byState, file = paste(path,"/data/COVID_7days_byState.Rda",sep=""))
+#write.csv(COVID_7days_byState, file = paste(path,"/data/COVID_7days_byState.csv",sep=""))
 
 ## Read in data from The COVID Tracking Project:
 
@@ -65,16 +65,17 @@ COVID_tracking_7days_COregion[COVID_tracking_7days_COregion$state == "KS",]
 # note: KS does not report the column positiveCasesViral. Since they do not report antibody tests, assume that positiveIncrease is the number of new cases and new positive PCR tests?
 
 # Calculate the daily positive PCR, daily negative PCR tests, daily total PCR tests, daily percent positivity, add full state name
-# If the next day's cumulative count of positive or negative PCR tests is less than that day, set that count to NA? Same question for positive, which then the already calculated positiveIncrease needs to be recalculated?
+# If the next day's cumulative count of positive or negative PCR tests is less than that day, set that count to NA or that day's count? Same question for positive, which then the already calculated positiveIncrease needs to be recalculated?
 
 COVID_tracking_7days_COregion_cnts <- COVID_tracking_7days_COregion %>%
 	group_by(state) %>%
 	arrange(date) %>%
 	mutate(
-	positive = ifelse(lead(positive) & lead(positive) < positive, NA, positive),
-	positiveCasesViral = ifelse(lead(positiveCasesViral) & lead(positiveCasesViral) < positiveCasesViral, NA, positiveCasesViral),
-	negative = ifelse(lead(negative) & lead(negative) < negative, NA, negative),
+	positive = ifelse(lead(positive) & lead(positive) < positive, lead(positive), positive),
 	positiveIncrease2 = positive - lag(positive, default = 0), 
+	positiveCasesViral = ifelse(lead(positiveCasesViral) & lead(positiveCasesViral) < positiveCasesViral, lag(positiveCasesViral) + positiveIncrease2, positiveCasesViral),
+	negative = ifelse(lag(negative) & lag(negative) > negative, lag(negative), negative),
+	negative = ifelse(lead(negative) & lead(negative) < negative, NA, negative),
 	positivePCRincrease = ifelse(is.na(positiveCasesViral) & !is.na(positiveIncrease2), positiveIncrease, positiveCasesViral - lag(positiveCasesViral, default = 0)), 
 	negativePCRincrease = negative - lag(negative, default = 0), 
 	PCRincrease = positivePCRincrease + negativePCRincrease,
@@ -85,21 +86,30 @@ COVID_tracking_7days_COregion_cnts <- COVID_tracking_7days_COregion %>%
 
 summary(COVID_tracking_7days_COregion_cnts)
 
+# Interesting issue with collecting data cumulatively, if there is a major correction in the total count one day and you have less cases than the day before, how do you handle all the previous days daily counts? See WY, 20200621 as a good example, drops about 9,139 negative PCR tests, so what does that mean for the previous accumulation?
+as.data.frame(COVID_tracking_7days_COregion_cnts[!is.na(COVID_tracking_7days_COregion_cnts$negativePCRincrease) & COVID_tracking_7days_COregion_cnts$negativePCRincrease < 0,])
+COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "OK" & COVID_tracking_7days_COregion_cnts$date <= 20200528 & COVID_tracking_7days_COregion_cnts$date >= 20200524,]
+as.data.frame(COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "WY" & COVID_tracking_7days_COregion_cnts$date <= 20200630 & COVID_tracking_7days_COregion_cnts$date >= 20200617,])
+
+# Similar issue tracking positiveCasesViral, adjustment in cumulative count means all previous cumulative counts are unreliable?
+as.data.frame(COVID_tracking_7days_COregion_cnts[!is.na(COVID_tracking_7days_COregion_cnts$positiveCasesViral) & COVID_tracking_7days_COregion_cnts$positiveCasesViral < 0,])
+COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "OK" & COVID_tracking_7days_COregion_cnts$date <= 20200528 & COVID_tracking_7days_COregion_cnts$date >= 20200524,]
+
 COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "OK",]
-# note: OK did not report an increase in negative PCR tests for 8/30 and 8/31
 summary(COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "TX",])
 COVID_tracking_7days_COregion_cnts[!is.na(COVID_tracking_7days_COregion_cnts$pct_positive) & COVID_tracking_7days_COregion_cnts$pct_positive >= 50,]
 # note: early days of testing may not result in an accurate percent positivity, since many were unable to get tested and the requirements for testing then were stringent? Some days with high positivity could be due to low testing counts that day.
 
 # Some days have a negative positiveIncrease (new cases)
-COVID_tracking_7days_COregion_cnts[!is.na(COVID_tracking_7days_COregion_cnts$positiveIncrease) & COVID_tracking_7days_COregion_cnts$positiveIncrease < 0,]
-COVID_tracking_all[COVID_tracking_all$state == "CO" & COVID_tracking_all$date <= 20200514 & COVID_tracking_all$date >= 20200510,]
+as.data.frame(COVID_tracking_7days_COregion_cnts[!is.na(COVID_tracking_7days_COregion_cnts$positiveIncrease) & COVID_tracking_7days_COregion_cnts$positiveIncrease < 0,])
+COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "CO" & COVID_tracking_7days_COregion_cnts$date <= 20200514 & COVID_tracking_7days_COregion_cnts$date >= 20200510,]
 
 # Some days have negative values when subracting the lag of positive or negative PCR tests
 COVID_tracking_7days_COregion_cnts[!is.na(COVID_tracking_7days_COregion_cnts$pct_positive) & COVID_tracking_7days_COregion_cnts$pct_positive < 0,]
 COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "CO" & COVID_tracking_7days_COregion_cnts$date <= 20200616 & COVID_tracking_7days_COregion_cnts$date >= 20200612,]
 
-# I'm wondering if these negative daily counts are a result of corrections from the previous days' cumulative counts or just plain errors in the data?
+# I'm wondering if these negative daily counts are a result of corrections from the previous days' cumulative counts or just plain errors in the data? Presents a challenge if you want to show daily counts, but don't have that raw data, only cumulative counts.
+
 
 # Define function to calculate 7-day moving average (MA), remove missing data and still calculate a mean. Otherwise, we would have some days with missing MA.
 MA7 <- function(x){
