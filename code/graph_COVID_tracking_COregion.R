@@ -17,6 +17,8 @@ order_st <- c(1,2,3,9,4,5,6,7,8)
 COVID_tracking_COregion <- COVID_tracking_COregion %>%
 	mutate(line_col_CO = ifelse(state_abrv == "CO", "CO", "Neighboring State"),
 		   line_draw_order = order_st[match(state_abrv, states)])
+summary(COVID_tracking_COregion)
+
 head(as.data.frame(COVID_tracking_COregion[COVID_tracking_COregion$state_abrv == "CO",]))
 
 #a) the 7-day moving average of new cases reported per 100,000,
@@ -69,3 +71,10 @@ COVID_tracking_COregion %>%
 	scale_color_manual("",values=c("purple", "gray"))
 	
 #ggsave(paste(path, "/graphs/COVID_tracking_positivity_7MA.png", sep=""), COVID_tracking_positivity_7MA, width=8, height=10, dpi=600)
+
+### Messing around with a plot for the most recent day's data:
+
+last(COVID_tracking_COregion$date)
+COVID_tracking_COregion_last <- as.data.frame(COVID_tracking_COregion %>%
+	filter(date == last(date)))
+

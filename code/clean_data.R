@@ -71,11 +71,11 @@ COVID_tracking_7days_COregion_cnts <- COVID_tracking_7days_COregion %>%
 	group_by(state) %>%
 	arrange(date) %>%
 	mutate(
-	positive = ifelse(lead(positive) & lead(positive) < positive, lead(positive), positive),
+	positive = ifelse(positive != last(positive) & lead(positive) & lead(positive) < positive, lead(positive), positive),
 	positiveIncrease2 = positive - lag(positive, default = 0), 
-	positiveCasesViral = ifelse(lead(positiveCasesViral) & lead(positiveCasesViral) < positiveCasesViral, lag(positiveCasesViral) + positiveIncrease2, positiveCasesViral),
-	negative = ifelse(lag(negative) & lag(negative) > negative, lag(negative), negative),
-	negative = ifelse(lead(negative) & lead(negative) < negative, NA, negative),
+	positiveCasesViral = ifelse(positiveCasesViral != last(positiveCasesViral) & lead(positiveCasesViral) & lead(positiveCasesViral) < positiveCasesViral, lag(positiveCasesViral) + positiveIncrease2, positiveCasesViral),
+	negative = ifelse(negative != first(negative) & lag(negative) & lag(negative) > negative, lag(negative), negative),
+	negative = ifelse(negative != last(negative) & lead(negative) & lead(negative) < negative, NA, negative),
 	positivePCRincrease = ifelse(is.na(positiveCasesViral) & !is.na(positiveIncrease2), positiveIncrease, positiveCasesViral - lag(positiveCasesViral, default = 0)), 
 	negativePCRincrease = negative - lag(negative, default = 0), 
 	PCRincrease = positivePCRincrease + negativePCRincrease,
@@ -89,6 +89,7 @@ summary(COVID_tracking_7days_COregion_cnts)
 # Interesting issue with collecting data cumulatively, if there is a major correction in the total count one day and you have less cases than the day before, how do you handle all the previous days daily counts? See WY, 20200621 as a good example, drops about 9,139 negative PCR tests, so what does that mean for the previous accumulation?
 as.data.frame(COVID_tracking_7days_COregion_cnts[!is.na(COVID_tracking_7days_COregion_cnts$negativePCRincrease) & COVID_tracking_7days_COregion_cnts$negativePCRincrease < 0,])
 COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "OK" & COVID_tracking_7days_COregion_cnts$date <= 20200528 & COVID_tracking_7days_COregion_cnts$date >= 20200524,]
+COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "KS" & COVID_tracking_7days_COregion_cnts$date <= 20200729 & COVID_tracking_7days_COregion_cnts$date >= 20200725,]
 as.data.frame(COVID_tracking_7days_COregion_cnts[COVID_tracking_7days_COregion_cnts$state_abrv == "WY" & COVID_tracking_7days_COregion_cnts$date <= 20200630 & COVID_tracking_7days_COregion_cnts$date >= 20200617,])
 
 # Similar issue tracking positiveCasesViral, adjustment in cumulative count means all previous cumulative counts are unreliable?
