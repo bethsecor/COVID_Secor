@@ -23,7 +23,9 @@ summary(COVID_tracking_COregion)
 # check if CO is last to be drawn
 head(as.data.frame(COVID_tracking_COregion[COVID_tracking_COregion$state_abrv == "CO",]))
 
-# Wondering what the end goal of graphing these measures is for: to highlight CO and show the difference between it and the neighboring states (what I initially thought of)? to compare all states in the region to each other? should I have summarized the whole region and had three moving averages metrics for the region?
+# Wondering what the end goal of graphing these measures is for: to highlight CO and show the difference between it and the neighboring states (what I initially thought of)? to compare all states in the region to each other? should I have summarized the whole region and had three moving averages metrics for the region? Or compared CO to a single neighbor states group?
+
+# What would be cool is if these graphs were interactive, and you could hover over a line and it would change color, so you could compare one other state to CO.
 
 # a) the 7-day moving average of new cases reported per 100,000
 
@@ -41,6 +43,7 @@ COVID_tracking_COregion %>%
 	scale_color_manual("",values=c("darkorchid3","darkgray")) +
 	geom_dl(aes(label= state_abrv), method=list("last.polygons", cex = 0.8))
 
+# This graph quickly shows that Colorado has been doing really well in flattening the curve, versus the neighboring states.
 
 ggsave(paste(path, "/graphs/COVID_tracking_newcases_7MA.png", sep=""), COVID_tracking_newcase_7MA, width=8, height=8, dpi=600)
 
@@ -60,6 +63,8 @@ COVID_tracking_COregion %>%
 	scale_color_manual("",values=c("deepskyblue3","darkgray")) +
 	geom_dl(aes(label= state_abrv), method=list("last.polygons", cex = 0.8))
 	
+# This graph shows a general trend of increasing PCR testing over time. Some states don't seem to report daily numbers for testing, but rather reporting a few days worth at a time, making this metric not all that reliable over time. Perhaps it would be smoother if we looked at weekly PCR tests conducted? I noticed when cleaning the data that the cumulative PCR testing count sometimes decreases, which makes it difficult to really rely on cumulative counts before that correction day.
+	
 ggsave(paste(path, "/graphs/COVID_tracking_PCR_7MA.png", sep=""), COVID_tracking_PCR_7MA, width=8, height=8, dpi=600)
 
 # c) The 7-day moving average of percent positivity (person-level positive PCR tests divided by the total number of people who received a PCR test each day
@@ -77,6 +82,8 @@ COVID_tracking_COregion %>%
 	theme(plot.title = element_text(size=16, hjust=0.5), plot.subtitle=element_text(size=12, hjust=0.5), plot.caption=element_text(size=10), legend.position = "bottom", legend.text=element_text(size=12), legend.key.width=unit(3,"lines"), legend.title=element_text(size=12), axis.title=element_text(size=12), axis.text=element_text(size=11, color="black")) +
 	scale_color_manual("",values=c("tomato","darkgray")) +
 	geom_dl(aes(label= state_abrv), method=list("last.polygons", cex = 0.8))
+	
+# This graph suffers from the same issue as the PCR test graph. Some states aren't really reporting daily PCR tests. It does get a bit more reliable for many states after June. After June it looks like Colorado has done a great job at keeping a consistently low positivity rate.
 	
 ggsave(paste(path, "/graphs/COVID_tracking_positivity_7MA.png", sep=""), COVID_tracking_positivity_7MA, width=8, height=8, dpi=600)
 
