@@ -35,7 +35,7 @@ The purpose of this project is to use data on COVID-19 cases from a few sources 
 
   a) the 7-day moving average of new cases reported per 100,000 (Output: **COVID_tracking_newcases_7MA.png**). This graph quickly shows that Colorado has been doing really well in flattening the curve, versus the neighboring states.
 
-    ![7 day moving average for new cases](https://raw.githubusercontent.com/bethsecor/COVID_Secor/master/graphs/COVID_tracking_newcases_7MA.png)
+![7 day moving average for new cases](https://raw.githubusercontent.com/bethsecor/COVID_Secor/master/graphs/COVID_tracking_newcases_7MA.png)
 
   b) The 7-day moving average of daily PCR tests conducted per 100,000 people (Output: **COVID_tracking_PCR_7MA.png**). This graph shows a general trend of increasing PCR testing over time. Some states don't seem to report daily numbers for testing, but rather reporting a few days worth at a time, making this metric not all that reliable over time. Perhaps it would be smoother if we looked at weekly PCR tests conducted? I noticed when cleaning the data that the cumulative PCR testing count sometimes decreases, which makes it difficult to really rely on cumulative counts before that correction day.
 
