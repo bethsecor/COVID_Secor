@@ -26,12 +26,21 @@ The purpose of this project is to use data on COVID-19 cases from a few sources 
 
   **Notes:** I really like this map, especially the color scheme. I originally started out with a simple white to blue color gradient, but found a package called viridis that provides palettes and gradients for colorblind users. Conversion to grayscale also retains the gradient effect. I found this gradient much easier to read than trying to match a shade of a color to the map. Future improvements could be to add a table below with the values, or even better, use something like leaflet to create an interactive map.
 
+  ![Map of COVID cases in last 7 days](https://raw.githubusercontent.com/bethsecor/COVID_Secor/master/graphs/COVID_7days_byState_Map.png)
+
+
 3. Run graph_COVID_tracking_COregion.R to output line graphs for the following three metrics:
 
   **Notes:** Wondering what the end goal of graphing these measures is for: to highlight CO and show the difference between it and the neighboring states (what I initially thought of)? to compare all states in the region to each other? should I have summarized the whole region and had three moving averages metrics for the region? Or compared CO to a single neighbor states group?
 
   a) the 7-day moving average of new cases reported per 100,000 (Output: **COVID_tracking_newcases_7MA.png**). This graph quickly shows that Colorado has been doing really well in flattening the curve, versus the neighboring states.
 
+    ![7 day moving average for new cases](https://raw.githubusercontent.com/bethsecor/COVID_Secor/master/graphs/COVID_tracking_newcases_7MA.png)
+
   b) The 7-day moving average of daily PCR tests conducted per 100,000 people (Output: **COVID_tracking_PCR_7MA.png**). This graph shows a general trend of increasing PCR testing over time. Some states don't seem to report daily numbers for testing, but rather reporting a few days worth at a time, making this metric not all that reliable over time. Perhaps it would be smoother if we looked at weekly PCR tests conducted? I noticed when cleaning the data that the cumulative PCR testing count sometimes decreases, which makes it difficult to really rely on cumulative counts before that correction day.
 
+![7 day moving average for new cases](https://raw.githubusercontent.com/bethsecor/COVID_Secor/master/graphs/COVID_tracking_PCR_7MA.png)
+
   c) The 7-day moving average of percent positivity (person-level positive PCR tests divided by the total number of people who received a PCR test each day (Output: **COVID_tracking_positivity_7MA.png**). This graph suffers from the same issue as the PCR test graph. Some states aren't really reporting daily PCR tests. It does get a bit more reliable for many states after June. After June it looks like Colorado has done a great job at keeping a consistently low positivity rate.
+
+![7 day moving average for new cases](https://raw.githubusercontent.com/bethsecor/COVID_Secor/master/graphs/COVID_tracking_positivity_7MA.png)
