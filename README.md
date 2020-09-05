@@ -24,7 +24,7 @@ The purpose of this project is to use data on COVID-19 cases from a few sources 
 
 2. To create a map showing US COVID-19 case incidence per 100,000 in the last 7 days, run the program **map_US_COVID_last7days.R** and it will save a png called **COVID_7days_byState_Map** to the graphs folder.
 
-  **Notes:** I really like this map, especially the color scheme. I originally started out with a simple white to blue color gradient, but found a package called viridis that provides palettes and gradients for colorblind users. Conversion to grayscale also retains the gradient effect. I found this gradient much easier to read than trying to match a shade of a color to the map. Future improvements could be to add a table below with the values, or even better, use something like leaflet to create an interactive map.
+  **Notes:** I really like this map, especially the color scheme. I originally started out with a simple white to blue color gradient, but found a package called viridis that provides palettes and gradients for users who are colorblind. Conversion to grayscale also retains the gradient effect. I found this gradient much easier to read than trying to match a shade of a color to the map. Future improvements could be to add a table below with the values, or even better, use something like leaflet to create an interactive map.
 
   ![Map of COVID cases in last 7 days](https://raw.githubusercontent.com/bethsecor/COVID_Secor/master/graphs/COVID_7days_byState_Map.png)
 
